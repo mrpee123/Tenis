@@ -1,0 +1,86 @@
+import pygame
+import sys
+
+# Инициализация Pygame
+pygame.init()
+
+# Константы
+WIDTH, HEIGHT = 800, 600
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+FPS = 60
+
+# Создание окна
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Теннис")
+
+# Определение классов
+class Paddle:
+    def __init__(self, x, y):
+        self.rect = pygame.Rect(x, y, 10, 100)
+
+    def move(self, dy):
+        if 0 < self.rect.y + dy < HEIGHT - self.rect.height:
+            self.rect.y += dy
+
+    def draw(self, surface):
+        pygame.draw.rect(surface, WHITE, self.rect)
+
+class Ball:
+    def __init__(self):
+        self.rect = pygame.Rect(WIDTH // 2, HEIGHT // 2, 15, 15)
+        self.speed_x = 5
+        self.speed_y = 5
+
+    def move(self):
+        self.rect.x += self.speed_x
+        self.rect.y += self.speed_y
+
+        # Отбивание от стен
+        if self.rect.top <= 0 or self.rect.bottom >= HEIGHT:
+            self.speed_y *= -1
+
+    def draw(self, surface):
+        pygame.draw.ellipse(surface, WHITE, self.rect)
+
+# Основной игровой цикл
+paddle1 = Paddle(30, HEIGHT // 2 - 50)
+paddle2 = Paddle(WIDTH - 40, HEIGHT // 2 - 50)
+ball = Ball()
+clock = pygame.time.Clock()
+
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_w]:
+        paddle1.move(-5)
+    if keys[pygame.K_s]:
+        paddle1.move(5)
+    if keys[pygame.K_UP]:
+        paddle2.move(-5)
+    if keys[pygame.K_DOWN]:
+        paddle2.move(5)
+
+    ball.move()
+
+    # Проверка на столкновение с ракетками
+    if ball.rect.colliderect(paddle1.rect) or ball.rect.colliderect(paddle2.rect):
+        ball.speed_x *= -1
+
+    # Проверка выхода за границы
+    if ball.rect.x < 0 or ball.rect.x > WIDTH:
+        ball.rect.x, ball.rect.y = WIDTH // 2, HEIGHT // 2
+        ball.speed_x *= -1
+
+    # Отрисовка
+    screen.fill(BLACK)
+    paddle1.draw(screen)
+    paddle2.draw(screen)
+    ball.draw(screen)
+    pygame.display.flip()
+
+    clock.tick(FPS)
